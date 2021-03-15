@@ -7,6 +7,7 @@ var form = $('form')
 var input = $('input')
 var formBtn = $("#formBtn")
 var currentWeather =  $("#currentWeatherCont")
+var searchHistory = $("#searchHistBtn")
 
 form.on("submit", getApi)
 
@@ -18,12 +19,14 @@ function getApi(event){
     if (typeof history != 'string') {
         history = [input[0].value]
         console.log(history)
-        
         localStorage.setItem("history",JSON.stringify(history))
     } else {
-        var parsed = JSON.parse(history)
-        parsed.push(input[0].value)
-        localStorage.setItem("history",JSON.stringify(parsed))
+        if (input[0].value == ""){
+        } else {
+            var parsed = JSON.parse(history)
+            parsed.unshift(input[0].value)
+            localStorage.setItem("history",JSON.stringify(parsed))
+        }
     }
 
 
@@ -144,3 +147,36 @@ function fiveDayForecast(event){
         })
 }
 
+var modal = $(".modal")
+var modalContent  = $(".modal-body")
+
+searchHistory.on("click",function(){
+    modalContent.children().remove()
+    modal[0].style.display = "block"
+
+    $("#modalClose").on("click",function(){
+        modal[0].style.display = "none"
+    })
+
+    modalContent.on("click", "div",function(event){
+        console.log(event.target)
+        input[0].value = event.target.dataset.city 
+        modal[0].style.display = "none"
+        getApi(event)
+
+    })
+
+    var lsHist = JSON.parse(localStorage.getItem("history"))
+    for(var i=0;i<7;i++){
+        var entry = $("<div>")
+        var title = $("<h5>")
+
+        entry.attr("class","border p-1 m-1 rounded histEntry d-flex align-items-center")
+        entry.attr("data-city",lsHist[i])
+        title.text(lsHist[i])
+        entry.append(title)
+
+        modalContent.append(entry)
+
+    }
+})

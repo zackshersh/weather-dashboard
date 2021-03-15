@@ -13,6 +13,20 @@ form.on("submit", getApi)
 function getApi(event){
     event.preventDefault()
 
+
+    var history = localStorage.getItem("history")
+    if (typeof history != 'string') {
+        history = [input[0].value]
+        console.log(history)
+        
+        localStorage.setItem("history",JSON.stringify(history))
+    } else {
+        var parsed = JSON.parse(history)
+        parsed.push(input[0].value)
+        localStorage.setItem("history",JSON.stringify(parsed))
+    }
+
+
     var requestUrl = "https://api.openweathermap.org/data/2.5/weather?q=+" + input[0].value + "&appid=4cfa8391d48a0b8394a66f203037d51e&units=imperial"
     console.log(requestUrl)
     fetch(requestUrl)
@@ -80,21 +94,41 @@ function fiveDayForecast(event){
                 .then(function(data){
                     console.log(data)
 
+                    var uvReading = $("<span>")
+                    uvReading.text(data.daily[0].uvi)
+
+                    if (data.daily[0].uvi <= 3){
+                        uvReading.attr("class","bg-success text-white p-1 rounded")
+                    } else if (data.daily[0].uvi <= 6){
+                        uvReading.attr("class","bg-warning text-white p-1 rounded")
+                    } else if (data.daily[0].uvi <= 10){
+                        uvReading.attr("class","bg-danger text-white p-1 rounded")
+                    }
+
+                    var uv = $("<p>")
+                    uv.text("UV Index: ")
+
+                    uv.append(uvReading)
+                    currentWeather.append(uv)
+
+                    fiveDayCont.children().remove()
                     for(var i=0;i<5;i++){
                         var dayDiv = $("<div>")
 
-                        dayDiv.attr("class","")
+                        dayDiv.attr("class", "col-6 col-sm-2 my-3 p-2 card d-flex align-items-center")
 
                         var icon = $("<img>")
+                        icon.attr("class","w-25")
                         icon.attr("src","http://openweathermap.org/img/wn/"+ data.daily[i].weather[0].icon +"@2x.png")
                         dayDiv.append(icon)
 
-                        var dayTitle = $("<h4>")
+                        var dayTitle = $("<h5>")
                         var currentDate = moment().add(i+1,'days')
                         dayTitle.text(currentDate.format("M/D/YYYY"))
                         dayDiv.append(dayTitle)
 
                         var dayTemp = $("<p>")
+                        dayTemp.attr("class","fs-6")
                         dayTemp.text("Temp: " + data.daily[i].temp.day + "°F")
 
                         var dayHumid = $("<p>")
